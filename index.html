@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Jipate Platform</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f6f8;
+      padding: 2rem;
+      text-align: center;
+    }
+    h1 {
+      color: #2c3e50;
+    }
+    .container {
+      background-color: #fff;
+      padding: 2rem;
+      margin: auto;
+      max-width: 500px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border-radius: 8px;
+    }
+    form {
+      margin: 1.5rem 0;
+    }
+    input {
+      padding: 0.5rem;
+      margin: 0.5rem;
+      width: 80%;
+    }
+    button {
+      padding: 0.7rem 1.5rem;
+      background-color: #27ae60;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    nav a {
+      margin: 0 1rem;
+      color: #2980b9;
+      text-decoration: none;
+    }
+    nav {
+      margin-bottom: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Welcome to Jipate</h1>
+    <p>Earn daily income by joining and referring others!</p>
+
+    <nav>
+      <a href="#">Register</a>
+      <a href="#">Login</a>
+      <a href="#">Invest</a>
+      <a href="#">Withdraw</a>
+      <a href="#">Admin</a>
+    </nav>
+
+    <h2>Register</h2>
+    <form action="https://jipate-backend-final.onrender.com/register" method="post">
+      <input type="text" name="username" placeholder="Username" required /><br/>
+      <input type="password" name="password" placeholder="Password" required /><br/>
+      <button type="submit">Register</button>
+    </form>
+
+    <h2>Login</h2>
+    <form action="https://jipate-backend-final.onrender.com/login" method="post">
+      <input type="text" name="username" placeholder="Username" required /><br/>
+      <input type="password" name="password" placeholder="Password" required /><br/>
+      <button type="submit">Login</button>
+    </form>
+
+    <p><strong>Sunday Special:</strong> 5% discount for new users who register on Sundays!</p>
+    <p><strong>Daily Earnings:</strong> Users earn 10% daily on their investment.</p>
+  </div>
+</body>
+</html>
