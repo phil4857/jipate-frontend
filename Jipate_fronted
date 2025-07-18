@@ -1,0 +1,111 @@
+from fastapi import FastAPI, Form, HTTPException
+from pydantic import BaseModel
+from datetime import datetime
+from typing import Dict
+import random
+
+app = FastAPI()
+
+# In-memory storage
+users: Dict[str, dict] = {}
+investments: Dict[str, dict] = {}
+
+# Utility
+def is_sunday():
+    return datetime.utcnow().strftime("%A") == "Sunday"
+
+# Models
+class User(BaseModel):
+    username: str
+    password: str
+    approved: bool = False
+    referral: str = None
+    referred_users: list = []
+    balance: float = 0.0
+    earnings: float = 0.0
+
+class Investment(BaseModel):
+    username: str
+    amount: float
+    approved: bool = False
+    timestamp: datetime
+
+@app.get("/")
+def root():
+    return {"message": "Welcome to Jipate Bonus Investment Platform!"}
+
+@app.post("/register")
+def register(username: str = Form(...), password: str = Form(...), referral: str = Form(None)):
+    if username in users:
+        raise HTTPException(status_code=400, detail="Username already exists")
+    user = User(username=username, password=password, referral=referral)
+    users[username] = user.dict()
+    if referral and referral in users:
+        users[referral]["referred_users"].append(username)
+    return {"message": "User registered successfully"}
+
+@app.post("/login")
+def login(username: str = Form(...), password: str = Form(...)):
+    if username not in users or users[username]["password"] != password:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    if not users[username]["approved"]:
+        raise HTTPException(status_code=403, detail="User not approved yet")
+    return {"message": f"Login successful for {username}"}
+
+@app.post("/invest")
+def invest(username: str = Form(...), amount: float = Form(...)):
+    if username not in users:
+        raise HTTPException(status_code=404, detail="User not found")
+    if not users[username]["approved"]:
+        raise HTTPException(status_code=403, detail="User not approved")
+    if is_sunday():
+        discount = amount * 0.05
+        amount -= discount
+    investment = Investment(username=username, amount=amount, timestamp=datetime.utcnow())
+    investments[username] = investment.dict()
+    return {"message": f"Investment submitted for {username} with amount {amount:.2f}"}
+
+@app.post("/admin/approve_user")
+def approve_user(username: str = Form(...)):
+    if username not in users:
+        raise HTTPException(status_code=404, detail="User not found")
+    users[username]["approved"] = True
+    return {"message": f"{username} approved"}
+
+@app.post("/admin/approve_investment")
+def approve_investment(username: str = Form(...)):
+    if username not in investments:
+        raise HTTPException(status_code=404, detail="No investment found")
+    investments[username]["approved"] = True
+    invested_amount = investments[username]["amount"]
+    users[username]["balance"] += invested_amount
+    # Referral bonus
+    referrer = users[username].get("referral")
+    if referrer and referrer in users:
+        bonus = invested_amount * 0.05
+        users[referrer]["balance"] += bonus
+    return {"message": f"Investment approved for {username}"}
+
+@app.post("/earnings/daily")
+def daily_earnings():
+    count = 0
+    for username, inv in investments.items():
+        if inv["approved"]:
+            earning = inv["amount"] * 0.10
+            users[username]["earnings"] += earning
+            users[username]["balance"] += earning
+            count += 1
+    return {"message": f"Daily earnings processed for {count} users"}
+
+@app.post("/withdraw")
+def withdraw(username: str = Form(...), amount: float = Form(...)):
+    if username not in users:
+        raise HTTPException(status_code=404, detail="User not found")
+    if users[username]["balance"] < amount:
+        raise HTTPException(status_code=400, detail="Insufficient balance")
+    users[username]["balance"] -= amount
+    return {"message": f"{amount} withdrawn by {username}"}
+
+@app.get("/admin/view_users")
+def view_users():
+    return users
